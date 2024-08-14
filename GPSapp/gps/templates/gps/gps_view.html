@@ -1,0 +1,87 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPSapp</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            margin-top: 10px;
+        }
+        #map {
+            height: 50vh; /* Ajusta la altura del mapa para que ocupe el 50% de la altura de la ventana */
+            width: 100%;
+        }
+        .info {
+            margin: 10px;
+            text-align: center;
+        }
+        @media (max-width: 600px) {
+            #map {
+                height: 40vh; /* Ajusta la altura del mapa para pantallas más pequeñas */
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Coordenadas en tiempo real</h1>
+    <div class="info">
+        <p>Latitud: <span id="lat">-</span></p>
+        <p>Longitud: <span id="lon">-</span></p>
+    </div>
+    
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Crear el mapa
+        var map = L.map('map').setView([0, 0], 13); // Ajustar el nivel de zoom inicial a 13
+
+        // Cargar el mapa de OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+        }).addTo(map);
+
+        var marker = L.marker([0, 0]).addTo(map); // Marcador inicial
+
+        // Función para actualizar la posición del dispositivo
+        function updatePosition(position) {
+            var lat = position.coords.latitude;
+            var lon = position.coords.longitude;
+
+            // Actualizar las coordenadas en la página con 7 decimales
+            document.getElementById('lat').textContent = lat.toFixed(7);
+            document.getElementById('lon').textContent = lon.toFixed(7);
+
+            // Mover el marcador y centrar el mapa en la nueva ubicación
+            marker.setLatLng([lat, lon]);
+            map.setView([lat, lon], 16); // Ajustar el zoom a 16 para mayor precisión
+        }
+
+        // Verificar si el navegador soporta la geolocalización
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(updatePosition, function(error) {
+                console.error('Error al obtener la ubicación:', error);
+                alert("No se pudo obtener la ubicación. Verifica los permisos.");
+            }, {
+                enableHighAccuracy: true, // Usar alta precisión
+                timeout: 5000,
+                maximumAge: 0
+            });
+        } else {
+            alert("Geolocalización no soportada por este navegador.");
+        }
+    </script>
+</body>
+</html>
